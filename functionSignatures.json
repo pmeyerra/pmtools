@@ -1,0 +1,25 @@
+{
+	"increaseSize":
+	{
+		"inputs":
+	[
+		{"name":"hfig", "kind":"required"},
+		{"name":"LineWidth", "kind":"namevalue"},
+		{"name":"FontSize", "kind":"namevalue"}
+	]
+	},
+	"formatplot":
+	{
+		"inputs":
+	[
+		{"name":"hfig", "kind":"required"},
+		{"name":"TopMargin", "kind":"namevalue"},
+		{"name":"BottomMargin", "kind":"namevalue"},
+		{"name":"LeftMargin", "kind":"namevalue"},
+		{"name":"RightMargin", "kind":"namevalue"},
+		{"name":"Gap", "kind":"namevalue"},
+		{"name":"LegendOutside", "kind":"namevalue"},
+		{"name":"LegendOutsideGap", "kind":"namevalue"}
+	]
+	}
+}
