@@ -19,7 +19,8 @@
 		{"name":"RightMargin", "kind":"namevalue"},
 		{"name":"Gap", "kind":"namevalue"},
 		{"name":"LegendOutside", "kind":"namevalue"},
-		{"name":"LegendOutsideGap", "kind":"namevalue"}
+		{"name":"LegendOutsideGap", "kind":"namevalue"},
+        {"name":"AllowTextcut", "kind":"namevalue"}
 	]
 	}
 }

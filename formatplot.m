@@ -40,6 +40,8 @@ function [hfig, hax] = formatplot(hfig, varargin)
 % LegendOutsideGap  double      normalized gap between legends and plots if
 %                               legends are placed outside of plots (0.02)
 %
+% AllowTextcut      boolean     allows the axis labels and titles to be
+%                               cutoff by the side of the figure (false)
 % -------------------------------------------------------------------------
 %
 % see also SUBPLOT, PLOT
@@ -67,13 +69,18 @@ function [hfig, hax] = formatplot(hfig, varargin)
 %
 %
 % -------------------------------------------------
-% developed using Matlab Version 9.1.0 (R2016b)
-% v1.1 - Oct 2017
+% developed using Matlab Version 9.2.0 (R2017a)
+% v1.2 - Apr 2018
 % Paul Meyer-Rachner - paul@meyer-rachner.email
 % -------------------------------------------------
 
 % Version Log:
 % -------------------------------------------------------------------------
+% v1.2 - 2018-04-11:
+% - added 'AllowTextcut' option. False by default. When the plots are
+% repositioned, avoid cutting off title or axis labels, which can happen
+% when the fontsize is pretty big and the gaps to the edged too small.
+%
 % v1.1.2 - 2017-10-25:
 % - added 'limitrate' argument to drawnow. This speeds up the drawnow
 % functions for plots with a high amount of data.
@@ -109,25 +116,28 @@ p = inputParser;
 
 addParameter(p, 'TopMargin', 0.05, ...
     @(x) validateattributes(x, {'numeric', 'nonempty'}, ...
-    {'scalar', '>', 0, '<', 0.5}, mfilename))
+    {'nonempty', 'scalar', '>', 0, '<', 0.5}, mfilename))
 addParameter(p, 'BottomMargin', 0.08, ...
     @(x) validateattributes(x, {'numeric', 'nonempty'}, ...
-    {'scalar', '>', 0, '<', 0.5}, mfilename))
+    {'nonempty', 'scalar', '>', 0, '<', 0.5}, mfilename))
 addParameter(p, 'LeftMargin', 0.08, ...
     @(x) validateattributes(x, {'numeric', 'nonempty'}, ...
-    {'scalar', '>', 0, '<', 0.5}, mfilename))
+    {'nonempty', 'scalar', '>', 0, '<', 0.5}, mfilename))
 addParameter(p, 'RightMargin', 0.02, ...
     @(x) validateattributes(x, {'numeric', 'nonempty'}, ...
     {'scalar', '>', 0, '<', 0.5}, mfilename))
 addParameter(p, 'Gap', 0.02, ...
     @(x) validateattributes(x, {'numeric', 'nonempty'}, ...
-    {'scalar', '>', 0, '<', 0.2}, mfilename))
+    {'nonempty', 'scalar', '>', 0, '<', 0.2}, mfilename))
 addParameter(p, 'LegendGap', 0.02, ...
     @(x) validateattributes(x, {'numeric', 'nonempty'}, ...
-    {'scalar', '>', 0, '<', 0.1}, mfilename))
+    {'nonempty', 'scalar', '>', 0, '<', 0.1}, mfilename))
 addParameter(p, 'LegendOutside', false, ...
     @(x) validateattributes(x, {'numeric', 'logical'}, ...
-    {'scalar', 'binary'}, mfilename))
+    {'nonempty', 'scalar', 'binary'}, mfilename))
+addParameter(p, 'AllowTextcut', false, ...
+    @(x) validateattributes(x, {'numeric', 'logical'}, ...
+    {'nonempty', 'scalar', 'binary'}, mfilename))
 
 % Parse input
 parse(p, varargin{:});
@@ -140,6 +150,7 @@ marginRight = p.Results.RightMargin;
 gap = p.Results.Gap;
 gapLegend = p.Results.LegendGap;
 legendOutside = p.Results.LegendOutside;
+allowTextcut = p.Results.AllowTextcut;
 
 %% Check axes
 % All subplots have to be in one column for this function to execute
@@ -171,6 +182,7 @@ end
 %% Sort axes from top to bottom
 
 % sort them according to the y coordinate of the bottom left corner
+% hax(1) will be highest subplot, hax(end) will be lowest subplot 
 [~, index] = sort(position(:, 2), 'descend');
 hax = hax(index);
 
@@ -179,6 +191,28 @@ hax = hax(index);
 % number of subplots
 countPlots = length(hax);
 
+% calculate minimum margin required to not cutoff axis labels
+requiredMarginBottom = hax(end).Position(2) - hax(end).OuterPosition(2);
+requiredMarginLeft = hax(1).Position(1) - hax(1).OuterPosition(1);
+requiredMarginTop = hax(1).OuterPosition(2) + hax(1).OuterPosition(4) ...
+    - hax(1).Position(2) - hax(1).Position(4);
+requiredMarginRight = hax(1).OuterPosition(1) + hax(1).OuterPosition(3) ...
+    - hax(1).Position(1) - hax(1).Position(3);
+
+% enlarge margins as to not cutoff text unless specified
+if (requiredMarginBottom > marginBottom) && ~allowTextcut
+    marginBottom = requiredMarginBottom;
+end % if
+if (requiredMarginRight > marginRight) && ~allowTextcut
+    marginRight = requiredMarginRight;
+end % if
+if (requiredMarginTop > marginTop) && ~allowTextcut
+    marginTop = requiredMarginTop;
+end % if
+if (requiredMarginLeft > marginLeft) && ~allowTextcut
+    marginLeft = requiredMarginLeft;
+end % if
+    
 % calculate width and height of subplots
 width = (1 - marginLeft - marginRight); 
 height = (1 - marginTop - marginBottom - gap*(countPlots-1))/countPlots; 
